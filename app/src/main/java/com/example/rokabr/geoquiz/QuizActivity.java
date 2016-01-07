@@ -106,7 +106,7 @@ public class QuizActivity extends AppCompatActivity {
         }); */
 
         if (savedInstanceState != null) {
-            mCurrentIndex = savedInstanceState.getInt(KEY_INDEX, 0);
+            mCurrentIndex = savedInstanceState.getInt(KEY_INDEX);
         }
 
 
@@ -132,9 +132,9 @@ public class QuizActivity extends AppCompatActivity {
 
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
-        super.onSaveInstanceState(savedInstanceState);
         Log.i(TAG, "onSaveInstanceState");
         savedInstanceState.putInt(KEY_INDEX, mCurrentIndex); // check for this value in OnCreate()
+        super.onSaveInstanceState(savedInstanceState);
     }
 
     private void updateQuestion() {
