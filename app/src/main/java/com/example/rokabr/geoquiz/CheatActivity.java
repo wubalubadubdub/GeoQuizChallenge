@@ -20,11 +20,17 @@ public class CheatActivity extends AppCompatActivity {
     private TextView mAnswerTextView;
     private Button mShowAnswerButton;
 
+    // this method is called by a parent activity, the one that wants to spawn this activity.
+    // QuizActivity will include whether the current question is true or false in this call.
+    // this will get called when the user clicks the cheat button, regardless of whether they
+    // then choose to click the Show Answer button or not.
     public static Intent newIntent(Context packageContext, boolean answerIsTrue) {
         Intent i = new Intent(packageContext, CheatActivity.class);
         i.putExtra(EXTRA_ANSWER_IS_TRUE, answerIsTrue);
         return i;
     }
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,7 +38,8 @@ public class CheatActivity extends AppCompatActivity {
         setContentView(R.layout.activity_cheat);
 
         mAnswerIsTrue = getIntent().getBooleanExtra(EXTRA_ANSWER_IS_TRUE, false);
-        // false is a default value that will be returned if the key is not found
+        // retrieves the value of true/false for the current question from the Intent
+        // that QuizActivity sends when user clicks the Cheat! button
 
         mAnswerTextView = (TextView) findViewById(R.id.answer_text_view);
         mShowAnswerButton = (Button) findViewById(R.id.show_answer_button);
@@ -45,9 +52,27 @@ public class CheatActivity extends AppCompatActivity {
                 } else {
                     mAnswerTextView.setText(R.string.false_button);
                 }
+
+                setAnswerShownResult(true); // creates an intent for the parent activity
+                // to receive and puts an extra containing the value "true" on the Intent
+                // since the user has clicked the Show Answer button
             }
         });
 
+    }
+
+    // this method lets QuizActivity know if the answer was shown or not.
+    // becomes true if user clicks the Show Answer button
+    private void setAnswerShownResult(boolean isAnswerShown) {
+        Intent data = new Intent();
+        data.putExtra(EXTRA_ANSWER_SHOWN, isAnswerShown);
+        setResult(RESULT_OK, data);
+    }
+
+    // this method will be called by QuizActivity. it unpacks the "data" from the
+    // Intent that was created in the method above.
+    public static boolean wasAnswerShown(Intent result) {
+        return result.getBooleanExtra(EXTRA_ANSWER_SHOWN, false);
     }
 
 

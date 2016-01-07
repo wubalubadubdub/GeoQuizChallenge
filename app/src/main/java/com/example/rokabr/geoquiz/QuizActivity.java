@@ -1,5 +1,6 @@
 package com.example.rokabr.geoquiz;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -34,6 +35,7 @@ public class QuizActivity extends AppCompatActivity {
     };
 
     private int mCurrentIndex = 0;
+    private boolean mIsCheater;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,6 +70,7 @@ public class QuizActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 mCurrentIndex = (mCurrentIndex + 1) % mQuestionBank.length;
+                mIsCheater = false; // reset the value for the next question
                 updateQuestion();
             }
         });
@@ -79,6 +82,8 @@ public class QuizActivity extends AppCompatActivity {
                 Intent i = CheatActivity.newIntent(QuizActivity.this, mQuestionBank[mCurrentIndex]
                         .isAnswerTrue());
                 startActivityForResult(i, REQUEST_CODE_CHEAT);
+                // the above starts the CheatActivity and passes over a request code that tells
+                // the parent activity which child activity is sending data back
             }
         });
         /* Following method is from challenge where I had to create a prev button
@@ -109,6 +114,22 @@ public class QuizActivity extends AppCompatActivity {
         // user has clicked any buttons
     }
 
+    // this method is called by the OS when the user presses the Back button
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode != Activity.RESULT_OK) { // if user clicked the Back button b4 Show Answer
+            return;
+        }
+
+        if (requestCode == REQUEST_CODE_CHEAT) {
+            if (data == null) {
+                return;
+            }
+
+            mIsCheater = CheatActivity.wasAnswerShown(data);
+        }
+    }
+
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
         super.onSaveInstanceState(savedInstanceState);
@@ -126,12 +147,19 @@ public class QuizActivity extends AppCompatActivity {
     private void checkAnswer(boolean userPressedTrue) {
         boolean answerIsTrue = mQuestionBank[mCurrentIndex].isAnswerTrue(); // returns T or F
 
-        int messageResId = 0;
+        int messageResId = 0; // used by the Toast to determine what message to display
 
-        if (userPressedTrue == answerIsTrue) { // user answered correctly
-            messageResId = R.string.correct_toast;
-        } else { // user answered incorrectly
-            messageResId = R.string.incorrect_toast;
+        if (mIsCheater) {
+            messageResId = R.string.judgment_toast;
+        }
+
+        else {
+
+            if (userPressedTrue == answerIsTrue) { // user answered correctly
+                messageResId = R.string.correct_toast;
+            } else { // user answered incorrectly
+                messageResId = R.string.incorrect_toast;
+            }
         }
 
         Toast.makeText(this, messageResId, Toast.LENGTH_SHORT).show();
