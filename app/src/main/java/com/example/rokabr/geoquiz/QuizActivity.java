@@ -85,7 +85,7 @@ public class QuizActivity extends AppCompatActivity {
             @Override
             public void onClick(View v){
                 // Start CheatActivity
-                mCheatIndex = mCurrentIndex;
+
                 Intent i = CheatActivity.newIntent(QuizActivity.this, mQuestionBank[mCurrentIndex]
                         .isAnswerTrue());
                 startActivityForResult(i, REQUEST_CODE_CHEAT);
@@ -119,6 +119,10 @@ public class QuizActivity extends AppCompatActivity {
 
             mIsCheater = CheatActivity.wasAnswerShown(data);
         }
+
+        if (mIsCheater) {
+            mCheatIndex = mCurrentIndex;
+        }
     }
 
     @Override
@@ -140,7 +144,7 @@ public class QuizActivity extends AppCompatActivity {
     private void checkAnswer(boolean userPressedTrue) {
         boolean answerIsTrue = mQuestionBank[mCurrentIndex].isAnswerTrue(); // returns T or F
 
-        int messageResId = 0; // used by the Toast to determine what message to display
+        int messageResId; // used by the Toast to determine what message to display
 
         if (mIsCheater) {
             if (mCheatIndex == mCurrentIndex) { // same question they last got an answer to. Cheater!

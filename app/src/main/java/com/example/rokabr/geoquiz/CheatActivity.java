@@ -1,10 +1,14 @@
 package com.example.rokabr.geoquiz;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewAnimationUtils;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -21,6 +25,7 @@ public class CheatActivity extends AppCompatActivity {
     private boolean mAnswerIsTrue;
     private boolean mAnswerWasShown; // used for storing the value in case user rotates device
     private TextView mAnswerTextView;
+    private TextView mApiTextView;
     private Button mShowAnswerButton;
 
     // this method is called by a parent activity, the one that wants to spawn this activity.
@@ -47,6 +52,8 @@ public class CheatActivity extends AppCompatActivity {
         // that QuizActivity sends when user clicks the Cheat! button
 
         mAnswerTextView = (TextView) findViewById(R.id.answer_text_view);
+        mApiTextView = (TextView) findViewById(R.id.api_text_view);
+        mApiTextView.setText("API level " + Integer.toString(Build.VERSION.SDK_INT));
         mShowAnswerButton = (Button) findViewById(R.id.show_answer_button);
         mShowAnswerButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -63,6 +70,31 @@ public class CheatActivity extends AppCompatActivity {
                 setAnswerShownResult(true); // creates an intent for the parent activity
                 // to receive and puts an extra containing the value "true" on the Intent
                 // since the user has clicked the Show Answer button
+
+                // if we're running on API 21 or higher, perform the animation
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+
+                    int cx = mShowAnswerButton.getWidth() / 2;
+                    int cy = mShowAnswerButton.getHeight() / 2;
+                    float radius = mShowAnswerButton.getWidth();
+                    Animator anim = ViewAnimationUtils.createCircularReveal(mShowAnswerButton, cx, cy,
+                            radius, 0); // x and y values of center, start, and ending radius
+                    // create a listener which allows you to know when the animation is complete
+                    anim.addListener(new AnimatorListenerAdapter() {
+                        @Override
+                        public void onAnimationEnd(Animator animation) {
+                            super.onAnimationEnd(animation);
+                            // show the answer and hide the button after animation over
+                            mAnswerTextView.setVisibility(View.VISIBLE);
+                            mShowAnswerButton.setVisibility(View.INVISIBLE);
+                        }
+                    });
+                    anim.start();
+
+                } else {  // otherwise just jump to setting the visibility without an animation
+                    mAnswerTextView.setVisibility(View.VISIBLE);
+                    mShowAnswerButton.setVisibility(View.INVISIBLE);
+                }
             }
         });
 
