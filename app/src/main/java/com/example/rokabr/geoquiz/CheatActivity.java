@@ -17,6 +17,7 @@ public class CheatActivity extends AppCompatActivity {
             "com.example.rokabr.geoquiz.answer_shown";
 
 
+
     private boolean mAnswerIsTrue;
     private boolean mAnswerWasShown; // used for storing the value in case user rotates device
     private TextView mAnswerTextView;

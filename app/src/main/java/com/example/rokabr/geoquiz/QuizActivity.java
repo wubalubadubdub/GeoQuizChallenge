@@ -35,7 +35,10 @@ public class QuizActivity extends AppCompatActivity {
     };
 
     private int mCurrentIndex = 0;
-    private boolean mIsCheater;
+    private int mCheatIndex = 0;
+    private boolean mIsCheater = false;
+    private static final String USER_CHEAT_STATUS = "com.example.rokabr.geoquiz.user_cheat_status";
+    private static final String USER_CHEAT_INDEX = "com.example.rokabr.geoquiz.user_cheat_index";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,7 +73,10 @@ public class QuizActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 mCurrentIndex = (mCurrentIndex + 1) % mQuestionBank.length;
-                mIsCheater = false; // reset the value for the next question
+                // if the user has hit next until they are back at the original question, and
+                // they were a cheater before, they are still a cheater. we're checking to see
+                // whether mCheatIndex (index when the user cheated) and mCurrentIndex are the same.
+
                 updateQuestion();
             }
         });
@@ -79,6 +85,7 @@ public class QuizActivity extends AppCompatActivity {
             @Override
             public void onClick(View v){
                 // Start CheatActivity
+                mCheatIndex = mCurrentIndex;
                 Intent i = CheatActivity.newIntent(QuizActivity.this, mQuestionBank[mCurrentIndex]
                         .isAnswerTrue());
                 startActivityForResult(i, REQUEST_CODE_CHEAT);
@@ -86,27 +93,11 @@ public class QuizActivity extends AppCompatActivity {
                 // the parent activity which child activity is sending data back
             }
         });
-        /* Following method is from challenge where I had to create a prev button
-        mPrevButton = (ImageButton) findViewById(R.id.prev_button);
-        mPrevButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (mCurrentIndex == 0) {
-                    mCurrentIndex = 4;
-                }
-                else {
-                    mCurrentIndex--;
-                }
-
-                // mCurrentIndex = (mCurrentIndex == 0)? 4 : mCurrentIndex--;
-                // alternate way to write above if/else
-
-                updateQuestion();
-            }
-        }); */
 
         if (savedInstanceState != null) {
             mCurrentIndex = savedInstanceState.getInt(KEY_INDEX);
+            mIsCheater = savedInstanceState.getBoolean(USER_CHEAT_STATUS);
+            mCheatIndex = savedInstanceState.getInt(USER_CHEAT_INDEX);
         }
 
 
@@ -134,6 +125,8 @@ public class QuizActivity extends AppCompatActivity {
     public void onSaveInstanceState(Bundle savedInstanceState) {
         Log.i(TAG, "onSaveInstanceState");
         savedInstanceState.putInt(KEY_INDEX, mCurrentIndex); // check for this value in OnCreate()
+        savedInstanceState.putBoolean(USER_CHEAT_STATUS, mIsCheater);
+        savedInstanceState.putInt(USER_CHEAT_INDEX, mCheatIndex);
         super.onSaveInstanceState(savedInstanceState);
     }
 
@@ -150,17 +143,29 @@ public class QuizActivity extends AppCompatActivity {
         int messageResId = 0; // used by the Toast to determine what message to display
 
         if (mIsCheater) {
-            messageResId = R.string.judgment_toast;
-        }
+            if (mCheatIndex == mCurrentIndex) { // same question they last got an answer to. Cheater!
+                messageResId = R.string.judgment_toast;
+            }
+            else {
+                mIsCheater = false; // reset cheater status since user has now answered a
+                // different question
+                if (userPressedTrue == answerIsTrue) { // user answered correctly
+                    messageResId = R.string.correct_toast;
+                } else { // user answered incorrectly
+                    messageResId = R.string.incorrect_toast;
+                }
 
-        else {
+            }
 
-            if (userPressedTrue == answerIsTrue) { // user answered correctly
+        } else {
+            if (userPressedTrue == answerIsTrue) {
                 messageResId = R.string.correct_toast;
-            } else { // user answered incorrectly
+            } else {
                 messageResId = R.string.incorrect_toast;
             }
+
         }
+
 
         Toast.makeText(this, messageResId, Toast.LENGTH_SHORT).show();
     }
